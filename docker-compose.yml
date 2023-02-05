@@ -7,11 +7,12 @@ services:
     env_file:
       - env.list
     ports:
-      - 5001:5000
+      - 631:5000
+      - 632:5001
     network_mode: bridge # Required due to clientportal.gw IP whitelist
     restart: 'no' # Prevents IBEAM_MAX_FAILED_AUTH from being exceeded
 
-  sqlite3:
+  db:
     container_name: sqlite3_container
     image: nouchka/sqlite3:latest
     stdin_open: true
