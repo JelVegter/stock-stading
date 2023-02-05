@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Union
-from common.sqlite import SQLDBConnection, sqlite3_conn
+from common.database import SQLDBConnection, sqlite3_conn
 import logging
 
 StockContract = """
@@ -16,39 +16,51 @@ isUS INT NULL,
 _ts VARCHAR(30) NOT NULL
 );"""
 
-
 StockHistory = """
 CREATE TABLE IF NOT EXISTS StockHistory (
 id VARCHAR(40) NOT NULL,
-conid INT NOT NULL,
-serverId VARCHAR(15) NULL,
+date VARCHAR(20) NOT NULL,
 symbol VARCHAR(15) NOT NULL,
-text VARCHAR(15) NOT NULL,
-priceFactor INT NULL,
-chartAnnotations VARCHAR(100) NULL,
-startTime VARCHAR(20) NOT NULL,
-high VARCHAR(50) NOT NULL,
-low VARCHAR(50) NOT NULL,
-timePeriod VARCHAR(15) NOT NULL,
-barLength INT NOT NULL,
-mdAvailability VARCHAR(15) NULL,
-mktDataDelay INT NULL,
-outsideRth INT NULL,
-volumeFactor INT NULL,
-priceDisplayRule INT NULL,
-priceDisplayValue VARCHAR(15) NULL,
-negativeCapable INT NULL,
-messageVersion INT NULL,
-price_open DECIMAL(6,2) NOT NULL,
-price_close DECIMAL(6,2) NOT NULL,
-price_high DECIMAL(6,2) NOT NULL,
-price_low DECIMAL(6,2) NOT NULL,
-volume DECIMAL(6,2) NOT NULL,
-datetime VARCHAR(20) NOT NULL,
-points INT NOT NULL,
-travelTime INT NOT NULL,
+price_open DECIMAL(6,5) NOT NULL,
+price_low DECIMAL(6,5) NOT NULL,
+price_high DECIMAL(6,5) NOT NULL,
+price_close DECIMAL(6,5) NOT NULL,
+price_adjclose DECIMAL(6,5) NOT NULL,
+volume DECIMAL(6,5) NOT NULL,
 _ts VARCHAR(20) NOT NULL
 );"""
+# StockHistory = """
+# CREATE TABLE IF NOT EXISTS StockHistory (
+# id VARCHAR(40) NOT NULL,
+# conid INT NOT NULL,
+# serverId VARCHAR(15) NULL,
+# symbol VARCHAR(15) NOT NULL,
+# text VARCHAR(15) NOT NULL,
+# priceFactor INT NULL,
+# chartAnnotations VARCHAR(100) NULL,
+# startTime VARCHAR(20) NOT NULL,
+# high VARCHAR(50) NOT NULL,
+# low VARCHAR(50) NOT NULL,
+# timePeriod VARCHAR(15) NOT NULL,
+# barLength INT NOT NULL,
+# mdAvailability VARCHAR(15) NULL,
+# mktDataDelay INT NULL,
+# outsideRth INT NULL,
+# volumeFactor INT NULL,
+# priceDisplayRule INT NULL,
+# priceDisplayValue VARCHAR(15) NULL,
+# negativeCapable INT NULL,
+# messageVersion INT NULL,
+# price_open DECIMAL(6,2) NOT NULL,
+# price_close DECIMAL(6,2) NOT NULL,
+# price_high DECIMAL(6,2) NOT NULL,
+# price_low DECIMAL(6,2) NOT NULL,
+# volume DECIMAL(6,2) NOT NULL,
+# datetime VARCHAR(20) NOT NULL,
+# points INT NOT NULL,
+# travelTime INT NOT NULL,
+# _ts VARCHAR(20) NOT NULL
+# );"""
 
 SP500 = """
 CREATE TABLE IF NOT EXISTS SP500 (
@@ -59,6 +71,7 @@ sec_filings VARCHAR(15) NULL,
 gics_sector VARCHAR(30) NULL,
 gics_sub_industry VARCHAR(30) NULL,
 headquarters_location VARCHAR(30) NULL,
+date_added VARCHAR(20) NULL,
 date_first_added VARCHAR(20) NULL,
 cik VARCHAR(30) NULL,
 founded VARCHAR(10) NULL,
