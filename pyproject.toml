@@ -5,7 +5,7 @@ description = ""
 authors = ["Jelle Vegter <jelle.vegter@nederlandseloterij.nl>"]
 packages = [
     { include = "common" },
-    { include = "stock_trading" },
+    { include = "src" },
 ]
 
 [tool.poetry.dependencies]

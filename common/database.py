@@ -5,6 +5,8 @@ from typing import Optional
 from datetime import datetime
 from abc import ABC, abstractmethod
 
+DATABASE_FILE = "database/sqlite3db"
+
 
 class DBConnection(ABC):
     @abstractmethod
@@ -101,4 +103,4 @@ class SQLDBConnection(DBConnection):
         self.execute_query(query)
 
 
-sqlite3_conn = SQLDBConnection("db/sqlite3db")
+sqlite3_conn = SQLDBConnection(DATABASE_FILE)

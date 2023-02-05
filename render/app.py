@@ -3,7 +3,7 @@
 
 from dash import Dash, html, dcc, dash_table
 import plotly.express as px
-from stock_trading import portfolio_analysis as pa
+from src.analysis import portfolio_analysis as pa
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 from pandas import DataFrame

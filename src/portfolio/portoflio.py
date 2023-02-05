@@ -2,7 +2,7 @@ from common.interactive_brokers import ib_api
 
 
 def main():
-    ib_api.fetch_ib_account()
+    ib_api.fetch_ib_portfolio()
 
 
 if __name__ == "__main__":

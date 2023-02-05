@@ -133,7 +133,6 @@ def transform_sp500_data_to_sql_df(
     col_mapping = {
         "SEC filings": "sec_filings",
         "GICS Sector": "gics_sector",
-        "GICS Sub-Industry": "gics_sub_industry",
         "Headquarters Location": "headquarters_location",
         "GICS Sub-Industry": "gics_sub_industry",
         "Date first added": "date_first_added",

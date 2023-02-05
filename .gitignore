@@ -130,3 +130,7 @@ dmypy.json
 
 sqlite3
 env.list
+
+*.log*
+*.csv
+data/*

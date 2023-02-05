@@ -1,6 +1,7 @@
 from typing import Union, Optional
 from dataclasses import dataclass, field
 from common.rest_api import RestAPI
+import json
 
 
 @dataclass
@@ -84,6 +85,11 @@ class StockHistoryRecord:
     travelTime: Optional[int] = None
 
 
+@dataclass
+class Portfolio:
+    ...
+
+
 class InteractiveBrokersApi(RestAPI):
     def __init__(self):
         self.base_url = "https://localhost:5001/v1/api/"
@@ -91,7 +97,7 @@ class InteractiveBrokersApi(RestAPI):
             "user": "one/user",
             "tickle": "tickle",
             "validate": "portal/sso/validate",
-            "accounts": "portfolio/accounts",
+            "portfolio": "portfolio/accounts",
             "trades": "iserver/account/trades",
             "market-data": "iserver/marketdata/snapshot",
             "stock-contracts": "trsrv/stocks",
@@ -138,11 +144,53 @@ class InteractiveBrokersApi(RestAPI):
             responses.append(record)
         return [StockHistory(**stock) for stock in responses]
 
-    def fetch_ib_account(self):
-        response = self.fetch_response_text(
-            endpoint="accounts",
-        )
+    def fetch_ib_portfolio(self):
+        # response = self.fetch_response_text(
+        #     endpoint="portfolio",
+        # )
+        response = [
+            {
+                "acctId": "string",
+                "conid": 0,
+                "contractDesc": "string",
+                "assetClass": "string",
+                "position": 0,
+                "mktPrice": 0,
+                "mktValue": 0,
+                "currency": "string",
+                "avgCost": 0,
+                "avgPrice": 0,
+                "realizedPnl": 0,
+                "unrealizedPnl": 0,
+                "exchs": "string",
+                "expiry": "string",
+                "putOrCall": "string",
+                "multiplier": 0,
+                "strike": 0,
+                "exerciseStyle": "string",
+                "undConid": 0,
+                "conExchMap": ["string"],
+                "baseMktValue": 0,
+                "baseMktPrice": 0,
+                "baseAvgCost": 0,
+                "baseAvgPrice": 0,
+                "baseRealizedPnl": 0,
+                "baseUnrealizedPnl": 0,
+                "name": "string",
+                "lastTradingDay": "string",
+                "group": "string",
+                "sector": "string",
+                "sectorGroup": "string",
+                "ticker": "string",
+                "undComp": "string",
+                "undSym": "string",
+                "fullName": "string",
+                "pageSize": 0,
+                "model": "string",
+            }
+        ]
         print(response)
+        return json.dumps()
 
 
 ib_api = InteractiveBrokersApi()
