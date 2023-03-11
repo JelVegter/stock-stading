@@ -6,7 +6,13 @@ RUN pip install -U pip \
     && curl -sSL https://install.python-poetry.org | python - 
 ENV PATH="${PATH}:/root/.poetry/bin"
 
-COPY . .
+COPY common/ common/
+COPY render/ render/
+COPY src/ src/
+COPY docker-compose.yml docker-compose.yml
+COPY Dockerfile Dockerfile
+COPY logging.ini logging.ini
+COPY poetry.toml poetry.toml
 
 RUN pip install poetry 
 RUN poetry config virtualenvs.create false
