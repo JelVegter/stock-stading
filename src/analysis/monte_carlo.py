@@ -44,3 +44,4 @@ def monte_carlo(weights: int, mean_returns: pd.Series, cov_matrix: pd.DataFrame)
         portfolio_sims[:, m] = (
             np.cumprod(np.inner(weights, dailyReturns.T) + 1) * initialPortfolio
         )
+    return
