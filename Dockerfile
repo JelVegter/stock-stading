@@ -12,7 +12,7 @@ COPY src/ src/
 COPY docker-compose.yml docker-compose.yml
 COPY Dockerfile Dockerfile
 COPY logging.ini logging.ini
-COPY poetry.toml poetry.toml
+COPY pyproject.toml pyproject.toml
 
 RUN pip install poetry 
 RUN poetry config virtualenvs.create false
