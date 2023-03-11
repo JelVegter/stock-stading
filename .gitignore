@@ -134,3 +134,10 @@ env.list
 *.log*
 *.csv
 data/*
+
+# TF
+.terraform.lock.hcl
+**/.terraform/*
+
+# DB
+sqlite3db
