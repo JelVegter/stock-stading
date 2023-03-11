@@ -15,4 +15,6 @@ RUN pip install poetry
 RUN poetry config virtualenvs.create false
 RUN poetry install
 
+EXPOSE 8080
+
 CMD ["poetry", "run", "python", "render/app.py"]
