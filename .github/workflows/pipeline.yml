@@ -28,8 +28,8 @@ jobs:
     - name: Build, tag, and push image to Amazon ECR
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: stocktrading-ecr-eu
-        IMAGE_TAG: prd-latest
+        ECR_REPOSITORY: stocktrading-ecr-dev-eu
+        IMAGE_TAG: dev-latest
       run: |
         echo ${{ steps.login-ecr.outputs.registry }}
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
