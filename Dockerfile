@@ -1,6 +1,6 @@
 FROM python:3.9-slim-bullseye
 
-WORKDIR /app
+# WORKDIR /app
 
 RUN pip install -U pip \
     && curl -sSL https://install.python-poetry.org | python - 
