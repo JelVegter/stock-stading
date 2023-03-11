@@ -1,1 +1,0 @@
-{"Modules":[{"Key":"","Source":"","Dir":"."},{"Key":"infrasettings","Source":"./terraform-module-infrasettings","Dir":""},{"Key":"keyvault","Source":"./terraform-module-keyvault","Dir":""},{"Key":"sb","Source":"./terraform-module-sb","Dir":""}]}
