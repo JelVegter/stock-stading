@@ -24,9 +24,8 @@ export AWS_SECRET_ACCESS_KEY=<your_aws_secret_access_key>
 poetry run python terraform/create_s3_backend.py
 ```
 
-To initialize Terraform, change into the terraform/ directory and run the following command:
+To use Terraform to build the AWS infrastructure, run the following command:
 
 ```
-cd terraform/
-terraform init
+make plan-apply
 ```

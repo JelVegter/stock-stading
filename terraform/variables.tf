@@ -1,7 +1,7 @@
-# variable "project" {
-#   type    = string
-#   default = "epimetheus"
-# }
+variable "project" {
+  type    = string
+  default = "stocktrading"
+}
 
 # variable "environment" {
 #   type = string
