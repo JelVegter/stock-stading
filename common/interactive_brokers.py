@@ -1,93 +1,75 @@
-from typing import Union, Optional
-from dataclasses import dataclass, field
+from typing import Union
 from common.rest_api import RestAPI
+from common.models import (
+    StockContract,
+    StockHistory,
+    StockHistoryRecord,
+    Account,
+    Position,
+)
 import json
-
-
-@dataclass
-class StockContract:
-    symbol: str
-    name: str
-    assetClass: str
-    conid: int
-    exchange: str
-    isUS: bool
-    chineseName: Optional[str] = None
-
-
-@dataclass
-class StockContractRecord:
-    id: str
-    symbol: str
-    name: str
-    assetClass: str
-    conid: int
-    exchange: str
-    isUS: bool
-    chineseName: Optional[str] = None
-
-
-@dataclass
-class StockHistory:
-    conid: int
-    symbol: str
-    text: str
-    data: list[dict[str, float]]
-    serverId: Optional[str] = None
-    priceFactor: Optional[int] = None
-    chartAnnotations: Optional[str] = None
-    startTime: Optional[str] = None
-    high: Optional[str] = None
-    low: Optional[str] = None
-    timePeriod: Optional[str] = None
-    barLength: Optional[int] = None
-    mdAvailability: Optional[str] = None
-    mktDataDelay: Optional[int] = None
-    outsideRth: Optional[bool] = None
-    volumeFactor: Optional[int] = None
-    priceDisplayRule: Optional[int] = None
-    priceDisplayValue: Optional[str] = None
-    negativeCapable: Optional[bool] = None
-    messageVersion: Optional[int] = None
-    points: Optional[int] = None
-    travelTime: Optional[int] = None
-
-
-@dataclass
-class StockHistoryRecord:
-    id: int
-    conid: int
-    serverId: str
-    symbol: str
-    text: str
-    price_open: float
-    price_close: float
-    price_high: float
-    price_low: float
-    volume: int
-    datetime: str
-    priceFactor: Optional[int] = None
-    chartAnnotations: Optional[str] = None
-    startTime: Optional[str] = None
-    high: Optional[str] = None
-    low: Optional[str] = None
-    timePeriod: Optional[str] = None
-    barLength: Optional[int] = None
-    mdAvailability: Optional[str] = None
-    mktDataDelay: Optional[int] = None
-    outsideRth: Optional[bool] = None
-    volumeFactor: Optional[int] = None
-    priceDisplayRule: Optional[int] = None
-    priceDisplayValue: Optional[str] = None
-    negativeCapable: Optional[bool] = None
-    messageVersion: Optional[int] = None
-    points: Optional[int] = None
-    travelTime: Optional[int] = None
+import pandas as pd
+from dataclasses import dataclass, asdict
+from common.sql_queries import get_portfolio_returns
+from common.calculations import calculcate_returns_percentage
 
 
 @dataclass
 class Portfolio:
-    ...
+    accounts: list[Account]
+    id: str = "1"
+
+    @property
+    def positions(self) -> list[Position]:
+        return [position for account in self.accounts for position in account.positions]
+
+    @property
+    def total_invested(self) -> list[Position]:
+        return 1
+        # return sum(position.mktValue for position in self.positions)
+
+    @property
+    def positions_and_weights(self):
+        if self.total_invested == 0:
+            raise ZeroDivisionError("Total invested amount cannot be zero.")
+
+        return {
+            position.ticker: (position.mktValue / self.total_invested)
+            for position in self.positions
+        }
+
+    @property
+    def positions_as_df(self) -> pd.DataFrame:
+        records = [
+            {**asdict(position), "portfolioId": self.id}
+            for account in self.accounts
+            for position in account.positions
+        ]
+        df = pd.DataFrame(records)
+        # move
+        first_cols = [
+            "portfolioId",
+            "acctId",
+            "conid",
+            "ticker",
+            "name",
+            "position",
+            "mktPrice",
+            "mktValue",
+        ]
+        ordered_cols = first_cols + [col for col in df.columns if col not in first_cols]
+        df.reset_index(drop=True, inplace=True)
+        return df[ordered_cols]
+
+    def get_historical_returns(self) -> pd.DataFrame:
+        symbols = list(self.positions_as_df["ticker"].unique())
+        df = get_portfolio_returns(symbols)
+        df = pd.pivot_table(
+            df, values="price_close", index=["Date"], columns=["symbol"]
+        ).reset_index()
+        df.index.names = ["index"]
+        df = calculcate_returns_percentage(df)
+        return df
 
 
 class InteractiveBrokersApi(RestAPI):
@@ -97,7 +79,8 @@ class InteractiveBrokersApi(RestAPI):
             "user": "one/user",
             "tickle": "tickle",
             "validate": "portal/sso/validate",
-            "portfolio": "portfolio/accounts",
+            "accounts": "portfolio/accounts",
+            "positions": "portfolio/{account}/positions/{pageId}",
             "trades": "iserver/account/trades",
             "market-data": "iserver/marketdata/snapshot",
             "stock-contracts": "trsrv/stocks",
@@ -144,53 +127,32 @@ class InteractiveBrokersApi(RestAPI):
             responses.append(record)
         return [StockHistory(**stock) for stock in responses]
 
-    def fetch_ib_portfolio(self):
-        # response = self.fetch_response_text(
-        #     endpoint="portfolio",
-        # )
-        response = [
-            {
-                "acctId": "string",
-                "conid": 0,
-                "contractDesc": "string",
-                "assetClass": "string",
-                "position": 0,
-                "mktPrice": 0,
-                "mktValue": 0,
-                "currency": "string",
-                "avgCost": 0,
-                "avgPrice": 0,
-                "realizedPnl": 0,
-                "unrealizedPnl": 0,
-                "exchs": "string",
-                "expiry": "string",
-                "putOrCall": "string",
-                "multiplier": 0,
-                "strike": 0,
-                "exerciseStyle": "string",
-                "undConid": 0,
-                "conExchMap": ["string"],
-                "baseMktValue": 0,
-                "baseMktPrice": 0,
-                "baseAvgCost": 0,
-                "baseAvgPrice": 0,
-                "baseRealizedPnl": 0,
-                "baseUnrealizedPnl": 0,
-                "name": "string",
-                "lastTradingDay": "string",
-                "group": "string",
-                "sector": "string",
-                "sectorGroup": "string",
-                "ticker": "string",
-                "undComp": "string",
-                "undSym": "string",
-                "fullName": "string",
-                "pageSize": 0,
-                "model": "string",
-            }
-        ]
-        print(response)
-        return json.dumps()
+    def fetch_accounts(self) -> list[Account]:
+        # response = self.fetch_response_json(endpoint="accounts")
+        # return
+        with open("data/accounts.json") as f:
+            response = json.load(f)
+            return [Account(**account) for account in response]
+
+    def fetch_account_positions(self, accounts: list[Account]) -> list[Account]:
+        for account in accounts:
+            # TODO requires paging
+            # response = self.fetch_response_json(
+            #     endpoint="positions", params={"account": account.id}
+            # )
+            with open("data/positions.json") as f:
+                response = json.load(f)
+
+            for position in response:
+                if position["acctId"] == account.accountId:
+                    account.positions.append(Position(**position))
+
+        return accounts
+
+    def fetch_portfolio(self) -> Portfolio:
+        accounts = self.fetch_accounts()
+        accounts_with_positions = self.fetch_account_positions(accounts)
+        return Portfolio(accounts=accounts_with_positions)
 
 
 ib_api = InteractiveBrokersApi()

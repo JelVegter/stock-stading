@@ -1,13 +1,16 @@
-from common.interactive_brokers import (
-    InteractiveBrokersApi,
+from common.models import (
     StockHistory,
     StockHistoryRecord,
     StockContract,
     StockContractRecord,
+)
+from common.interactive_brokers import (
+    InteractiveBrokersApi,
     ib_api,
 )
 from common.database import DBConnection
 from typing import Union
+import pandas as pd
 from pandas import DataFrame, read_html, read_fwf, concat
 from common.database import sqlite3_conn
 from typing import Optional
@@ -23,6 +26,10 @@ from yahoo_fin.stock_info import (
     tickers_sp500,
     tickers_nasdaq,
     tickers_other,
+    tickers_dow,
+    tickers_other,
+    tickers_ftse100,
+    tickers_ftse250,
     get_quote_table,
 )
 
@@ -101,8 +108,8 @@ def transform_stock_history_to_sql_df(
     df: DataFrame,
 ) -> DataFrame:
     df.reset_index(inplace=True)
-    df["date"] = df["index"].map(format_datetime)
-    df["id"] = df.apply(lambda x: get_hashed_id(x["ticker"], x["date"]), axis=1)
+    df["Date"] = df["index"].map(format_datetime)
+    df["id"] = df.apply(lambda x: get_hashed_id(x["ticker"], x["Date"]), axis=1)
     df = df.rename(
         columns={
             "ticker": "symbol",
@@ -115,7 +122,7 @@ def transform_stock_history_to_sql_df(
     )
     cols = [
         "id",
-        "date",
+        "Date",
         "symbol",
         "price_open",
         "price_low",
@@ -150,10 +157,10 @@ def transform_ff_factors_to_sql_df(
     df.rename(columns={"Mkt-RF": "mkt_rf"}, inplace=True)
     split_index = df.index[df["index"] == "Annua"][0]
     df = df.iloc[:split_index]
-    df["date"] = df["index"].apply(
+    df["Date"] = df["index"].apply(
         lambda x: format_datetime(datetime.strptime(x, "%Y%m"))
     )
-    df["id"] = df["date"].apply(lambda x: get_hashed_id(x))
+    df["id"] = df["Date"].apply(lambda x: get_hashed_id(x))
     df = df.drop(columns="index")
     return df
 
@@ -197,38 +204,35 @@ class ETL:
             except Exception as e:
                 failed_symbols.append((symbol, e))
 
-        print(failed_symbols)
         df = transform_stock_history_to_sql_df(df)
         self.db_conn.df_to_sql_table(df, table=table)
         logging.info(f"Inserted {len(df)} stock price records into {table}")
         self.db_conn.deduplicate_table(table)
         return df
 
-    # def stock_price_history(
-    #     self,
-    #     conids: Union[list[int], int],
-    #     period: str = "1y",
-    #     bar: str = "1m",
-    # ) -> DataFrame:
-    #     table = "StockHistory"
-    #     chunk_size = 10
-    #     for i in range(0, len(conids), chunk_size):
-    #         api_data = self.api.fetch_stock_price_history(
-    #             conids[i : i + chunk_size], period=period, bar=bar
-    #         )
-    #         records = convert_stock_history_to_records(api_data)
-    #         df = DataFrame(records)
-    #         self.db_conn.df_to_sql_table(df, table=table)
-    #         logging.info(f"Inserted {len(records)} stock price records into {table}")
+    def fetch_stock_symbols(self) -> DataFrame:
+        table = "Symbol"
+        df = pd.DataFrame()
+        ticker_sources = {
+            "sp500": tickers_sp500(),
+            "nasdaq": tickers_nasdaq(),
+            "dow": tickers_dow(),
+            "other": tickers_other(),
+            "ftse250": tickers_ftse250(),
+        }
+        for source, symbols in ticker_sources.items():
+            row = pd.DataFrame({"symbol": symbols})
+            row["source"] = source
+            df = pd.concat([df, row])
 
-    #     self.db_conn.deduplicate_table(table)
-    #     return df
+        self.db_conn.df_to_sql_table(df, table=table)
+        df = self.db_conn.sql_table_to_df(table)
+        return df
 
     def sp500(self) -> DataFrame:
         table = "SP500"
         html = read_html("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
         df = transform_sp500_data_to_sql_df(html[0])
-        print(df)
         self.db_conn.df_to_sql_table(df, table=table)
         logging.info(f"Inserted {len(df)} S&P500 records into {table}")
         self.db_conn.deduplicate_table(table)
@@ -238,14 +242,20 @@ class ETL:
         table = "FFFactors"
         url = "http://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_5_Factors_2x3_TXT.zip"
         response = requests.get(url)
-        zip = ZipFile(BytesIO(response.content))
-        _bytes = zip.read("F-F_Research_Data_5_Factors_2x3.txt")
+        _zip = ZipFile(BytesIO(response.content))
+        _bytes = _zip.read("F-F_Research_Data_5_Factors_2x3.txt")
         df = read_fwf(BytesIO(_bytes), skiprows=2, index_col=[0])
         df = transform_ff_factors_to_sql_df(df)
         self.db_conn.df_to_sql_table(df, table=table)
         logging.info(f"Inserted {len(df)} FF factors records into {table}")
         self.db_conn.deduplicate_table(table)
         return df
+
+
+def get_available_symbols() -> list[str]:
+    db_conn: DBConnection = sqlite3_conn
+    df = db_conn.sql_table_to_df(table="Symbol")
+    return list(df["symbol"].unique())
 
 
 def get_sp500_symbols(db_conn: DBConnection) -> list[str]:
@@ -274,14 +284,16 @@ def main():
     # etl.fama_french_factors()
 
     # Fetch stock contract data
-    symbols = get_sp500_symbols(sqlite3_conn)
+    # symbols = get_sp500_symbols(sqlite3_conn)
     # etl.stock_contract(symbols)
 
     # Fetch stock price history data
     # symbols = ["ECNL"]
     # conids = get_conids_for_symbols(sqlite3_conn)
     # etl.stock_price_history(conids=conids, period="5y", bar="1m")
-    etl.stock_price_history(symbols=symbols, years=5, interval="1mo")
+    # etl.stock_price_history(symbols=symbols, years=5, interval="1mo")
+
+    etl.fetch_stock_symbols()
 
 
 if __name__ == "__main__":
