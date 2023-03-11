@@ -7,8 +7,7 @@ services:
     env_file:
       - env.list
     ports:
-      - 631:5000
-      - 632:5001
+      - 5001:5000
     network_mode: bridge # Required due to clientportal.gw IP whitelist
     restart: 'no' # Prevents IBEAM_MAX_FAILED_AUTH from being exceeded
 
@@ -18,7 +17,7 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ./db:/root/db/
+      - ./database:/root/db/
     ports:
       - 5002:5002
     restart: unless-stopped

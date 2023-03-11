@@ -29,4 +29,3 @@ info = get_quote_table("amzn")
 si.get_data(
     "amzn",
 )
-print(aapl)
