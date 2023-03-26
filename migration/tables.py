@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Union
-from common.database import SQLDBConnection, sqlite3_conn
+from common.database import SQLDBConnection, db_conn
 import logging
 
 StockContract = """
@@ -116,7 +116,7 @@ def main():
         "FFFactors": FFFactors,
     }
     db_tables = [DatabaseTable(k, v) for k, v in table_definitions.items()]
-    create_database_tables(sqlite3_conn, db_tables)
+    create_database_tables(db_conn, db_tables)
 
 
 if __name__ == "__main__":

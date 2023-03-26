@@ -3,7 +3,7 @@ import pandas as pd
 import datetime as dt
 from common.sql_queries import get_portfolio_returns, get_factor_portfolio_returns
 from common.calculations import calculcate_returns_percentage
-from common.database import sqlite3_conn
+from common.database import DB_CONN
 
 
 def convert_absolute_returns_to_perc_returns(df: pd.DataFrame) -> pd.DataFrame:
@@ -18,7 +18,7 @@ def convert_perc_returns_to_cumulative_perc_returns(df: pd.DataFrame) -> pd.Data
 
 
 def get_sp500_symbols() -> list[str]:
-    symbols = sqlite3_conn.sql_query_to_df("SELECT DISTINCT(symbol) FROM SP500")
+    symbols = DB_CONN.sql_query_to_df("SELECT DISTINCT(symbol) FROM sp500")
     return list(symbols["symbol"].unique())
 
 
@@ -54,7 +54,7 @@ def fetch_stock_returns(
 def get_sp500_stockhistory_data():
     symbols = get_sp500_symbols()
     symbols_str = "','".join(symbols)
-    return sqlite3_conn.sql_query_to_df(
+    return DB_CONN.sql_query_to_df(
         f"""    SELECT strftime('%Y-%m',date) as date,
                 id, symbol, price_open, price_close
                 FROM stockhistory

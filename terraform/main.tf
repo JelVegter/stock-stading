@@ -115,20 +115,14 @@ resource "aws_iam_role" "apprunner_role" {
   })
 }
 
-resource "aws_ecr_repository_policy" "apprunner_policy" {
-  repository = aws_ecr_repository.container_registry.name
+resource "aws_iam_role_policy" "apprunner_policy" {
   name = "apprunner-${var.project}-policy"
   role = aws_iam_role.apprunner_role.id
 
   policy = jsonencode({
-    Version = "2008-10-17"
+    Version = "2012-10-17"
     Statement = [
       {
-        Sid       = "AppRunnerAccess"
-        Effect    = "Allow"
-        Principal = {
-          Service = "apprunner.amazonaws.com"
-        }
         Action = [
           "ecr:GetAuthorizationToken",
           "ecr:BatchCheckLayerAvailability",
@@ -136,15 +130,16 @@ resource "aws_ecr_repository_policy" "apprunner_policy" {
           "ecr:BatchGetImage",
           "ecr:DescribeImages"
         ]
+        Effect   = "Allow"
+        Resource = "*"
       }
     ]
   })
 }
 
 
-
 resource "aws_apprunner_service" "stocktrading" {
-  service_name = "apprunner-${var.project}-eu"
+  service_name = "apprunner-${var.project}-${var.environment}-eu"
 
   source_configuration {
     image_repository {
@@ -152,8 +147,8 @@ resource "aws_apprunner_service" "stocktrading" {
         port = "8080"
       }
 
-      image_identifier      = aws_ecr_repository.container_registry.repository_url
-      image_repository_type = "ECR" 
+      image_identifier      = "${aws_ecr_repository.container_registry.repository_url}:latest"
+      image_repository_type = "ECR"
     }
 
     authentication_configuration {
