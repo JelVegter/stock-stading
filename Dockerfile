@@ -24,4 +24,4 @@ RUN pip install poetry \
 
 EXPOSE 8080
 
-# CMD ["poetry", "run", "python", "render/app.py"]
+CMD ["poetry", "run", "python", "render/app.py"]

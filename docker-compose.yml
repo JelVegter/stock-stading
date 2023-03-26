@@ -4,7 +4,6 @@ services:
   app:
     container_name: stocktrading
     build: .
-    command: ["poetry", "run", "python", "render/app.py"]
     ports:
       - 8080:8080
 
