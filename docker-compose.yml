@@ -1,24 +1,10 @@
 version: "2.1"
 
 services:
-  ibeam:
-    image: voyz/ibeam
-    container_name: ibeam
-    env_file:
-      - env.list
+  app:
+    container_name: stocktrading
+    build: .
     ports:
-      - 5001:5000
-    network_mode: bridge # Required due to clientportal.gw IP whitelist
-    restart: 'no' # Prevents IBEAM_MAX_FAILED_AUTH from being exceeded
+      - 8080:8080
 
-  db:
-    container_name: sqlite3_container
-    image: nouchka/sqlite3:latest
-    stdin_open: true
-    tty: true
-    volumes:
-      - ./database:/root/db/
-    ports:
-      - 5002:5002
-    restart: unless-stopped
 

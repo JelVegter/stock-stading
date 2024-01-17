@@ -137,7 +137,9 @@ data/*
 
 # TF
 .terraform.lock.hcl
+terraform.out
 **/.terraform/*
 
+
 # DB
-sqlite3db
+# sqlite3db

@@ -60,7 +60,9 @@ class PortfolioAnalysis:
 
     def run_portfolio_analysis(self) -> pd.DataFrame:
         df = self.grouped_cumulative_returns.copy()
-        df = df.merge(self.FF_factor_cumulative_returns, on="Date")
+        df = df.merge(
+            self.FF_factor_cumulative_returns, left_on="Date", right_on="date"
+        )
         X, y = split_df_into_X_and_y(df)
         model = run_ols_regression(y, X)
         summary = model.summary().tables[1].as_html()
