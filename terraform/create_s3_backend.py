@@ -4,9 +4,6 @@ BACKEND_BUCKET = "stocktrading-terraform-backend"
 REGION = "eu-central-1"
 
 s3_client = boto3.client("s3", region_name=REGION)
-# s3_client.create_bucket(
-#     Bucket=BACKEND_BUCKET, CreateBucketConfiguration={"LocationConstraint": REGION}
-# )
 s3_client.create_bucket(
     Bucket="stocktrading-cicd-storage",
     CreateBucketConfiguration={"LocationConstraint": REGION},
